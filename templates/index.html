@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Stock Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+            color: #333;
+        }
+        h1 {
+            color: #333366;
+            text-align: center;
+            margin-top: 50px;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            margin-top: 50px;
+        }
+        input[type="text"] {
+            padding: 15px;
+            width: 300px;
+            border-radius: 25px;
+            border: none;
+            box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+        }
+        #suggestions {
+            border-radius: 4px;
+            width: 300px;
+            overflow: hidden;
+            display: none;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            margin-top: 10px;
+        }
+
+        .suggestion-item {
+            padding: 12px;
+            margin: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 12px;
+            background-color: #f9f9f9;
+        }
+
+        .suggestion-item:hover {
+            background-color: #007bff;
+            color: white;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+
+        #stockInfo {
+            margin-top: 50px;
+            padding: 20px;
+            border-radius: 15px;
+            background-color: #fff;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            display: none;
+        }
+        #stockInfo h2 {
+            margin-top: 0;
+            font-size: 24px;
+            color: #333366;
+        }
+        #stockInfo p {
+            margin: 10px 0;
+            font-size: 18px;
+        }
+            /* Mobile View */
+    @media (max-width: 768px) {
+        input[type="text"], #suggestions {
+            width: 90%;
+        }
+        h1 {
+            font-size: 28px;
+            margin-top: 30px;
+        }
+        #stockInfo h2 {
+            font-size: 20px;
+        }
+        #stockInfo p {
+            font-size: 16px;
+        }
+        .container {
+            margin-top: 30px;
+        }
+        #stockInfo {
+            margin-top: 30px;
+            padding: 15px;
+        }
+            input[type="text"],
+    #suggestions,
+    #stockInfo {
+        width: 90%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    #stockInfo {
+        padding: 15px;
+        margin: 0 15px; /* Add left and right margins */
+    }
+    }
+    #suggestions {
+    /* ...existing styles... */
+    max-height: 200px; /* Limiting the height. Adjust this value based on your individual item's height */
+    overflow-y: auto;  /* Enabling vertical scroll */
+}
+
+/* Styling the scrollbar */
+#suggestions::-webkit-scrollbar {
+    width: 8px;  /* width of the entire scrollbar */
+}
+
+#suggestions::-webkit-scrollbar-thumb {
+    background-color: #888;  /* color of the scroll thumb */
+    border-radius: 4px;       /* roundness of the scroll thumb */
+}
+
+#suggestions::-webkit-scrollbar-thumb:hover {
+    background-color: #555;  /* color of the scroll thumb when hovered */
+}
+
+    </style>
+    <!-- rest of your existing code -->
+    <script>
+        // Function to fetch suggestions from the server
+        function fetchSuggestions() {
+            const input = document.getElementById("companyName").value;
+            const suggestions = document.getElementById("suggestions");
+
+            if (input.trim() === '') {
+                // Hide suggestions if input is empty
+                suggestions.style.display = 'none';
+                return;
+            }
+
+            fetch(`http://127.0.0.1:5000/suggest?partial_name=${input}`)
+            .then(response => response.json())
+            .then(data => updateSuggestions(data))
+            .catch(error => console.error("Error:", error));
+        }
+
+
+        // Function to update the suggestions box
+        function updateSuggestions(data) {
+            const suggestions = document.getElementById("suggestions");
+            suggestions.innerHTML = "";  // Clear previous suggestions
+
+            if (Object.keys(data.matched_companies).length > 0) {
+                suggestions.style.display = "block";  // Show the suggestions box
+                for (const [name, ticker] of Object.entries(data.matched_companies)) {
+                    const suggestionItem = document.createElement("div");
+                    suggestionItem.textContent = name;
+                    suggestionItem.classList.add("suggestion-item");  // Add a CSS class for styling if you want
+
+                    // Inside your updateSuggestions function
+                    suggestionItem.addEventListener("click", function() {
+                        fetchStockInfo(ticker, name);
+                    });
+
+
+                    suggestions.appendChild(suggestionItem);
+                }
+            } else {
+                suggestions.style.display = "none";  // Hide the suggestions box if no suggestions are available
+            }
+
+
+        }
+
+
+        // Function to fetch stock info based on ticker
+        function fetchStockInfo(ticker, companyName) {
+            fetch(`http://127.0.0.1:5000/stocks?tickers=${ticker}`)
+            .then(response => response.json())
+            .then(data => {
+                const stockInfoDiv = document.getElementById("stockInfo");
+
+                // Update UI
+                stockInfoDiv.innerHTML = `<h2>${companyName}</h2>
+                                          <p>Stock Ticker: ${ticker}</p>
+                                          <p>Current Price: $${data[ticker]} USD</p>
+                                          <a href="https://finance.yahoo.com/quote/${ticker}" target="_blank">View on Yahoo Finance</a>`;
+
+                stockInfoDiv.style.display = "block";  // Show the stockInfo box
+            })
+            .catch(error => console.error("Error fetching stock info:", error));
+        }
+
+    </script>
+</head>
+<body>
+
+    <h1>Stock Price Lookup</h1>
+
+    <div class="container">
+        <input type="text" id="companyName" oninput="fetchSuggestions()" placeholder="Type company name or ticker..."/>
+        <div id="suggestions">
+            <!-- Suggestions will appear here -->
+        </div>
+
+        <div id="stockInfo">
+            <!-- Stock information will appear here -->
+        </div>
+    </div>
+
+    <!-- Your existing JavaScript code here -->
+
+</body>
+</html>
