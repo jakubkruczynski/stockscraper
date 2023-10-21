@@ -18,7 +18,8 @@ ticker_map = load_ticker_mapping('tickers.csv')  # Adjust the filename if needed
 print(list(ticker_map.items())[:5])  # print first 5 items in the ticker_map
 
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:3000"])
+#CORS(app, origins=["http://localhost:3000"])
+CORS(app, origins=["https://jakub94.pythonanywhere.com"])
 
 #CORS(app, origins=["http://127.0.0.1:5000"])
 CORS(app)

@@ -20,7 +20,8 @@ function App() {
 
   useEffect(() => {
     if (inputValue) {
-      axios.get(`http://127.0.0.1:5000/suggest?partial_name=${inputValue}`)
+      axios.get(`https://jakub94.pythonanywhere.com/suggest?partial_name=${inputValue}`)
+      // axios.get(`http://127.0.0.1:5000/suggest?partial_name=${inputValue}`)
         .then((response) => {
           setSuggestions(Object.entries(response.data.matched_companies));
         })
@@ -30,7 +31,8 @@ function App() {
 
   const fetchStockInfo = async (ticker) => {
     try {
-      const response = await axios.get(`http://127.0.0.1:5000/stocks?tickers=${ticker}`);
+      // const response = await axios.get(`http://127.0.0.1:5000/stocks?tickers=${ticker}`);
+      const response = await axios.get(`https://jakub94.pythonanywhere.com/stocks?tickers=${ticker}`);
       setStockInfo(response.data);
     } catch (error) {
       console.error("Error fetching stock info:", error);
