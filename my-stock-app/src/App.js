@@ -9,6 +9,7 @@ import './App.css';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';  // New import
 import LaunchIcon from '@mui/icons-material/Launch';  // New import
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';  // New import
+import CircularProgress from '@mui/material/CircularProgress';
 
 const width = window.innerWidth;
 
@@ -17,11 +18,12 @@ function App() {
   const [suggestions, setSuggestions] = useState([]);
   const [stockInfo, setStockInfo] = useState(null);
   const [selectedCompany, setSelectedCompany] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
 
   useEffect(() => {
     if (inputValue) {
       axios.get(`https://jakub94.pythonanywhere.com/suggest?partial_name=${inputValue}`)
-      // axios.get(`http://127.0.0.1:5000/suggest?partial_name=${inputValue}`)
         .then((response) => {
           setSuggestions(Object.entries(response.data.matched_companies));
         })
@@ -29,15 +31,17 @@ function App() {
     }
   }, [inputValue]);
 
-  const fetchStockInfo = async (ticker) => {
-    try {
-      // const response = await axios.get(`http://127.0.0.1:5000/stocks?tickers=${ticker}`);
-      const response = await axios.get(`https://jakub94.pythonanywhere.com/stocks?tickers=${ticker}`);
-      setStockInfo(response.data);
-    } catch (error) {
-      console.error("Error fetching stock info:", error);
-    }
-  };
+    const fetchStockInfo = async (ticker) => {
+      try {
+        setIsLoading(true);  // Set loading to true before fetching data
+        const response = await axios.get(`https://jakub94.pythonanywhere.com/stocks?tickers=${ticker}`);
+        setStockInfo(response.data);
+      } catch (error) {
+        console.error("Error fetching stock info:", error);
+      } finally {
+        setIsLoading(false);  // Set loading to false after fetching data or if an error occurs
+      }
+    };
 
   return (
     <div className="App" style={{ backgroundColor: '#ffffff' }}>  {/* Change background color to white */}
@@ -71,6 +75,12 @@ function App() {
               }
             }}
           />
+            {isLoading && (
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+                <CircularProgress />
+              </div>
+            )}
+
           {stockInfo && selectedCompany && (
             <Card style={{ maxWidth: 400, margin: '20px auto', backgroundColor: '#F0F4F8' }}>  {/* Lighter background */}
               <CardContent>
